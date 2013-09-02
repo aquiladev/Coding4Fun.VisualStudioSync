@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync.Extension", "VisualStudioSync.Extension\VisualStudioSync.Extension.csproj", "{494A4108-834A-4BB1-BEF4-13AAA135FF95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync", "VisualStudioSync\VisualStudioSync.csproj", "{75FD3E62-ED44-4E90-9A28-15B9432A4B8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync.Live", "VisualStudioSync.Live\VisualStudioSync.Live.csproj", "{4B289457-1F40-49D3-A79B-BF67421D8181}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{494A4108-834A-4BB1-BEF4-13AAA135FF95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{494A4108-834A-4BB1-BEF4-13AAA135FF95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{494A4108-834A-4BB1-BEF4-13AAA135FF95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{494A4108-834A-4BB1-BEF4-13AAA135FF95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75FD3E62-ED44-4E90-9A28-15B9432A4B8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75FD3E62-ED44-4E90-9A28-15B9432A4B8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75FD3E62-ED44-4E90-9A28-15B9432A4B8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75FD3E62-ED44-4E90-9A28-15B9432A4B8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B289457-1F40-49D3-A79B-BF67421D8181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B289457-1F40-49D3-A79B-BF67421D8181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B289457-1F40-49D3-A79B-BF67421D8181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B289457-1F40-49D3-A79B-BF67421D8181}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
