@@ -18,6 +18,7 @@ namespace VisualStudioSync.Live
 		private LiveAuthClient _liveAuthClient;
 		private LiveConnectClient _liveConnectClient;
 		private RefreshTokenInfo _refreshTokenInfo;
+		private string _value;
 
 		private LiveAuthClient AuthClient
 		{
@@ -96,7 +97,7 @@ namespace VisualStudioSync.Live
 		public string GetFile()
 		{
 			DoCommand(DoGetFile);
-			return "qw";
+			return _value;
 		}
 
 		private void DoCommand(AuthCompletedCallback action)
@@ -155,17 +156,9 @@ namespace VisualStudioSync.Live
 
 				if (!String.IsNullOrEmpty(fileId))
 				{
-					//using (var stream = new WriteStream())
-					//{
-					//	var file = await _liveConnectClient.DownloadAsync(fileId);
-					//	if (file.Stream != null)
-					//	{
-					//		using (file.Stream)
-					//		{
-					//			await file.Stream.CopyToAsync(stream);
-					//		}
-					//	}
-					//}
+					var file = await _liveConnectClient.DownloadAsync(fileId);
+					var reader = new StreamReader(file.Stream);
+					_value = reader.ReadToEnd();
 				}
 			}
 		}

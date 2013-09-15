@@ -71,10 +71,9 @@
     <Compile Include="LiveAuthForm.Designer.cs">
       <DependentUpon>LiveAuthForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="LIveController.cs" />
-    <Compile Include="SettingsRepository.cs" />
+    <Compile Include="LiveController.cs" />
+    <Compile Include="LiveRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SettingsWatcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualStudioSync\VisualStudioSync.csproj">

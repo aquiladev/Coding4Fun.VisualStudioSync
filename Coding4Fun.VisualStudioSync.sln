@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync", "VisualS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync.Live", "VisualStudioSync.Live\VisualStudioSync.Live.csproj", "{4B289457-1F40-49D3-A79B-BF67421D8181}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync.Tests", "VisualStudioSync.Tests\VisualStudioSync.Tests.csproj", "{D9ADAA40-A05D-4564-B818-19B60B24E977}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{4B289457-1F40-49D3-A79B-BF67421D8181}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B289457-1F40-49D3-A79B-BF67421D8181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B289457-1F40-49D3-A79B-BF67421D8181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9ADAA40-A05D-4564-B818-19B60B24E977}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9ADAA40-A05D-4564-B818-19B60B24E977}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9ADAA40-A05D-4564-B818-19B60B24E977}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9ADAA40-A05D-4564-B818-19B60B24E977}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

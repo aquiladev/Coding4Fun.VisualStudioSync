@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
 using Autofac;
 using Autofac.Core;
+using Autofac.Core.Activators.Reflection;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -25,10 +27,11 @@ namespace VisualStudioSync.Extension
 	[ProvideOptionPage(typeof(OptionsPage), "Extension Sync", "General", 0, 0, true)]
 	public sealed class VisualStudioSyncPackage : Package, IVsShellPropertyEvents
 	{
+		private static IContainer Container { get; set; }
+
 		private uint _cookie;
 		private OptionsPage _optionsPage;
-		private ISettingsWatcher _watcher;
-		private static IContainer Container { get; set; }
+		private ISyncManager _manager;
 
 		private string Settings
 		{
@@ -53,6 +56,8 @@ namespace VisualStudioSync.Extension
 			{
 				ErrorHandler.ThrowOnFailure(shellService.AdviseShellPropertyChanges(this, out _cookie));
 			}
+
+			_manager = Container.Resolve<ISyncManager>();
 		}
 
 		#endregion
@@ -63,7 +68,6 @@ namespace VisualStudioSync.Extension
 			{
 				if ((bool)var == false)
 				{
-					//Visual Studio is now ready and loaded up
 					var shellService = GetService(typeof(SVsShell)) as IVsShell;
 					if (shellService != null)
 						ErrorHandler.ThrowOnFailure(shellService.UnadviseShellPropertyChanges(_cookie));
@@ -95,37 +99,14 @@ namespace VisualStudioSync.Extension
 			//_watcher.Changed += OnWatcherOnChanged;
 		}
 
-		private void OnWatcherOnChanged(object sender, EventArgs e)
-		{
-			Synchronize();
-		}
+		//private void OnWatcherOnChanged(object sender, EventArgs e)
+		//{
+		//	Synchronize();
+		//}
 
 		void Synchronize()
 		{
-			lock (this)
-			{
-				//var path = Path.Combine(UserLocalDataPath, "vs_sync_test.txt");
-				//using (var stream = new StreamWriter(path))
-				//{
-				//	stream.Write(repository.GetSettins());
-				//}
-				var path = GetPackageInstallationFolder();
-				var repository = Container.Resolve<ISettingsRepository>(new Parameter[]
-				{
-					new NamedParameter("settingsPath", path)
-				});
-				repository.GetSettins();
-			}
-		}
-
-		private static void InitializeContainer()
-		{
-			var builder = new ContainerBuilder();
-			builder.RegisterType<SettingsRepository>()
-				.As<ISettingsRepository>();
-			builder.RegisterType<SettingsWatcher>()
-				.As<ISettingsWatcher>();
-			Container = builder.Build();
+			_manager.Sync();
 		}
 
 		private static string GetPackageInstallationFolder()
@@ -135,5 +116,27 @@ namespace VisualStudioSync.Extension
 			var assemblyFileInfo = new FileInfo(assemblyCodeBaseUri.LocalPath);
 			return assemblyFileInfo.Directory.FullName;
 		}
+
+		#region Init Container
+
+		private static void InitializeContainer()
+		{
+			var path = GetPackageInstallationFolder();
+			var builder = new ContainerBuilder();
+			builder.RegisterType<SyncManager>()
+				.As<ISyncManager>();
+			builder.RegisterType<LiveRepository>()
+				.As<ISyncRepository>();
+			builder.RegisterType<SettingsController>()
+				.As<ISyncController>()
+				.WithParameter(new NamedParameter("extPath", path))
+				.WithParameter(new NamedParameter("manager", GetGlobalService(typeof(SVsProfileDataManager)) as IVsProfileDataManager))
+				.PreserveExistingDefaults();
+			builder.RegisterType<XmlRepository>()
+				.As<IXmlRepository>(); 
+			Container = builder.Build();
+		}
+
+		#endregion
 	}
 }
