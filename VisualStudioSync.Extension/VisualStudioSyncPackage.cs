@@ -5,6 +5,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
 using Autofac;
+using Autofac.Core;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -68,7 +72,7 @@ namespace VisualStudioSync.Extension
 					_optionsPage = (OptionsPage)GetDialogPage(typeof(OptionsPage));
 					_optionsPage.SettingsUpdated += OptionsPageSettingsUpdated;
 
-					SetupWatcher(); 
+					SetupWatcher();
 					Synchronize();
 				}
 			}
@@ -100,12 +104,17 @@ namespace VisualStudioSync.Extension
 		{
 			lock (this)
 			{
-				var path = Path.Combine(UserLocalDataPath, "vs_sync_test.txt");
-				using (var stream = new StreamWriter(path))
+				//var path = Path.Combine(UserLocalDataPath, "vs_sync_test.txt");
+				//using (var stream = new StreamWriter(path))
+				//{
+				//	stream.Write(repository.GetSettins());
+				//}
+				var path = GetPackageInstallationFolder();
+				var repository = Container.Resolve<ISettingsRepository>(new Parameter[]
 				{
-					var repository = Container.Resolve<ISettingsRepository>();
-					stream.Write(repository.GetSettins());
-				}
+					new NamedParameter("settingsPath", path)
+				});
+				repository.GetSettins();
 			}
 		}
 
@@ -117,6 +126,14 @@ namespace VisualStudioSync.Extension
 			builder.RegisterType<SettingsWatcher>()
 				.As<ISettingsWatcher>();
 			Container = builder.Build();
+		}
+
+		private static string GetPackageInstallationFolder()
+		{
+			var packageType = typeof(VisualStudioSyncPackage);
+			var assemblyCodeBaseUri = new Uri(packageType.Assembly.CodeBase, UriKind.Absolute);
+			var assemblyFileInfo = new FileInfo(assemblyCodeBaseUri.LocalPath);
+			return assemblyFileInfo.Directory.FullName;
 		}
 	}
 }

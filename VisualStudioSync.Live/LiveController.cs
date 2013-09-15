@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Live;
@@ -9,6 +12,8 @@ namespace VisualStudioSync.Live
 	public class LiveController : IRefreshTokenHandler
 	{
 		private const string ClientId = "00000000481024B2";
+		private const string FolderName = "VS Sync";
+		private const string FileName = "vs_sync.settings";
 		private LiveAuthForm _authForm;
 		private LiveAuthClient _liveAuthClient;
 		private LiveConnectClient _liveConnectClient;
@@ -67,11 +72,12 @@ namespace VisualStudioSync.Live
 
 		private void CleanupAuthForm()
 		{
-			if (_authForm != null)
+			if (_authForm == null)
 			{
-				_authForm.Dispose();
-				_authForm = null;
+				return;
 			}
+			_authForm.Dispose();
+			_authForm = null;
 		}
 
 		public Task SaveRefreshTokenAsync(RefreshTokenInfo tokenInfo)
@@ -89,7 +95,7 @@ namespace VisualStudioSync.Live
 
 		public string GetFile()
 		{
-			DoCommand(DoIt);
+			DoCommand(DoGetFile);
 			return "qw";
 		}
 
@@ -108,7 +114,11 @@ namespace VisualStudioSync.Live
 			}
 		}
 
-		private async void DoIt(AuthResult result)
+		/// <summary>
+		/// TODO: decide long async\await method
+		/// </summary>
+		/// <param name="result"></param>
+		private async void DoGetFile(AuthResult result)
 		{
 			CleanupAuthForm();
 			if (result.AuthorizeCode != null)
@@ -117,17 +127,46 @@ namespace VisualStudioSync.Live
 				_liveConnectClient = new LiveConnectClient(session);
 
 				var operationResult = await _liveConnectClient.GetAsync("me/skydrive/files");
-				dynamic re = operationResult.Result;
+				var items = operationResult.Result["data"] as List<object>;
+				var folderId = items == null
+					? null
+					: items.Select(item => item as IDictionary<string, object>)
+						.Where(file => file["name"].ToString() == FolderName)
+						.Select(file => file["id"].ToString())
+						.FirstOrDefault();
 
-				//var items = re.Result["data"] as List<object>;
-				//foreach (object item in items)
-				//{
-				//	var file = item as IDictionary<string, object>;
-				//	if (file["name"].ToString() == "somefile.txt")
-				//	{
-				//		var id = file["id"].ToString();
-				//	}
-				//}
+				if (String.IsNullOrEmpty(folderId))
+				{
+					var folderData = new Dictionary<string, object> { { "name", FolderName } };
+					operationResult = await _liveConnectClient.PostAsync("me/skydrive", folderData);
+					dynamic res = operationResult.Result;
+					folderId = res.id;
+				}
+
+				var path = string.Format("{0}/files", folderId);
+				operationResult = await _liveConnectClient.GetAsync(path);
+				var files = operationResult.Result["data"] as List<object>;
+				var fileId = files == null
+					? null
+					: files.Select(item => item as IDictionary<string, object>)
+						.Where(file => file["name"].ToString() == FileName)
+						.Select(file => file["id"].ToString())
+						.FirstOrDefault();
+
+				if (!String.IsNullOrEmpty(fileId))
+				{
+					//using (var stream = new WriteStream())
+					//{
+					//	var file = await _liveConnectClient.DownloadAsync(fileId);
+					//	if (file.Stream != null)
+					//	{
+					//		using (file.Stream)
+					//		{
+					//			await file.Stream.CopyToAsync(stream);
+					//		}
+					//	}
+					//}
+				}
 			}
 		}
 	}
