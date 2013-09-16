@@ -19,7 +19,7 @@ namespace VisualStudioSync.Live
 
 		public void Push(string value)
 		{
-			throw new System.NotImplementedException();
+			_controller.SaveFile(value);
 		}
 	}
 }

@@ -6,18 +6,16 @@ namespace VisualStudioSync
 	{
 		public string GetXml(string path)
 		{
-			using (var reader = XmlReader.Create(path))
-			{
-				return reader.ReadOuterXml();
-			}
+			var doc = new XmlDocument();
+			doc.Load(path);
+			return doc.OuterXml;
 		}
 
 		public void SetXml(string path, string value)
 		{
-			using (var writer = XmlWriter.Create(path))
-			{
-				writer.WriteString(value);
-			}
+			var doc = new XmlDocument();
+			doc.LoadXml(value);
+			doc.Save(path);
 		}
 	}
 }

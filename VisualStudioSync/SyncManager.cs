@@ -18,8 +18,8 @@ namespace VisualStudioSync
 		{
 			var repoValue = _repository.Pull();
 			var controllersValue = GetControllersValue();
-			if (!string.IsNullOrEmpty(repoValue) 
-				&& !controllersValue.Equals(repoValue))
+			if (string.IsNullOrEmpty(repoValue) 
+				|| !controllersValue.Equals(repoValue))
 			{
 				_repository.Push(controllersValue);
 			}
