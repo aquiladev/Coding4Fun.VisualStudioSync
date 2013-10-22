@@ -45,5 +45,13 @@ namespace VisualStudioSync
 			settingsFileInfo.GetSettingsForImport(out sets);
 			_manager.ImportSettings(sets, out _errorInformation);
 		}
+
+		public string Name
+		{
+			get
+			{
+				return "settings";
+			}
+		}
 	}
 }

@@ -1,8 +1,10 @@
-﻿namespace VisualStudioSync
+﻿using VisualStudioSync.Models;
+
+namespace VisualStudioSync
 {
 	public interface ISyncRepository
 	{
-		string Pull();
+		Blob Pull();
 		void Push(string value);
 	}
 }

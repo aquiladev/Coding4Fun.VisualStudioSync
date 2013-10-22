@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Live;
+using VisualStudioSync.Models;
 
 namespace VisualStudioSync.Live
 {
@@ -14,6 +14,8 @@ namespace VisualStudioSync.Live
 		private const string ClientId = "00000000481024B2";
 		private const string FolderName = "VS Sync";
 		private const string FileName = "vs_sync.settings";
+		private const string SkyDrivePath = "me/skydrive";
+		private const string FilesPath = "{0}/files";
 		private LiveAuthForm _authForm;
 		private LiveAuthClient _liveAuthClient;
 		private LiveConnectClient _liveConnectClient;
@@ -86,7 +88,7 @@ namespace VisualStudioSync.Live
 			return Task.Factory.StartNew(() => _refreshTokenInfo);
 		}
 
-		public string GetFile()
+		public Blob GetBlob()
 		{
 			if (AuthSession == null)
 			{
@@ -95,13 +97,13 @@ namespace VisualStudioSync.Live
 			return ReadFile();
 		}
 
-		public void SaveFile(string value)
+		public void SaveBlob(string value)
 		{
 			if (AuthSession == null)
 			{
 				SignIn();
 			}
-			WriteFile(value);
+			var g = WriteFile(value).Result;
 		}
 
 		private void SignIn()
@@ -144,10 +146,7 @@ namespace VisualStudioSync.Live
 			}
 		}
 
-		/// <summary>
-		/// TODO: decide long async\await method
-		/// </summary>
-		private string ReadFile()
+		private Blob ReadFile()
 		{
 			var folderId = GetSyncFolder();
 			if (string.IsNullOrEmpty(folderId))
@@ -155,26 +154,32 @@ namespace VisualStudioSync.Live
 				throw new NullReferenceException();
 			}
 
-			var path = string.Format("{0}/files", folderId);
+			var path = string.Format(FilesPath, folderId);
 			var result = _liveConnectClient.GetAsync(path).Result;
 			var files = result.Result["data"] as List<object>;
-			var fileId = files == null
+			var file = files == null
 				? null
-				: files.Select(item => item as IDictionary<string, object>)
-					.Where(file => file["name"].ToString() == FileName)
-					.Select(file => file["id"].ToString())
-					.FirstOrDefault();
+				: files
+					.Select(item => item as IDictionary<string, object>)
+					.FirstOrDefault(f => f["name"].ToString() == FileName);
 
-			if (!String.IsNullOrEmpty(fileId))
+			if (file == null)
 			{
-				var file = _liveConnectClient.DownloadAsync(fileId).Result;
-				var reader = new StreamReader(file.Stream);
-				return reader.ReadToEnd();
+				return null;
 			}
-			return null;
+
+			var id = file["upload_location"].ToString();
+			var fileAsync = _liveConnectClient.DownloadAsync(id).Result;
+			string value;
+			using (var reader = new StreamReader(fileAsync.Stream))
+			{
+				value = reader.ReadToEnd();
+			}
+
+			return new Blob(value, DateTime.Parse(file["updated_time"].ToString()));
 		}
 
-		private void WriteFile(string value)
+		private Task<LiveOperationResult> WriteFile(string value)
 		{
 			var folderId = GetSyncFolder();
 			if (string.IsNullOrEmpty(folderId))
@@ -182,22 +187,15 @@ namespace VisualStudioSync.Live
 				throw new NullReferenceException();
 			}
 
-			using (var stream = new MemoryStream())
-			{
-				using (var writer = new StreamWriter(stream))
-				{
-					writer.Write(value);
-					writer.Flush();
-					stream.Position = 0;
-					_liveConnectClient.UploadAsync(folderId, FileName, stream, OverwriteOption.Overwrite);
-				}
-			}
+			return _liveConnectClient.UploadAsync(folderId, FileName,
+				new MemoryStream(System.Text.Encoding.UTF8.GetBytes(value)),
+				OverwriteOption.Overwrite);
 		}
 
 		private string GetSyncFolder()
 		{
 			string folderId = null;
-			var result = _liveConnectClient.GetAsync("me/skydrive/files").Result;
+			var result = _liveConnectClient.GetAsync(string.Format(FilesPath, SkyDrivePath)).Result;
 			if (result != null)
 			{
 				var items = result.Result["data"] as List<object>;
@@ -211,7 +209,7 @@ namespace VisualStudioSync.Live
 				if (String.IsNullOrEmpty(folderId))
 				{
 					var folderData = new Dictionary<string, object> { { "name", FolderName } };
-					result = _liveConnectClient.PostAsync("me/skydrive", folderData).Result;
+					result = _liveConnectClient.PostAsync(SkyDrivePath, folderData).Result;
 					dynamic res = result.Result;
 					folderId = res.id;
 				}

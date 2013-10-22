@@ -4,5 +4,6 @@
 	{
 		string Get();
 		void Set(string value);
+		string Name { get; }
 	}
 }

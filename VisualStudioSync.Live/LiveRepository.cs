@@ -1,4 +1,5 @@
 ﻿using System;
+using VisualStudioSync.Models;
 
 namespace VisualStudioSync.Live
 {
@@ -12,14 +13,14 @@ namespace VisualStudioSync.Live
 		}
 
 		[STAThread]
-		public string Pull()
+		public Blob Pull()
 		{
-			return _controller.GetFile();
+			return _controller.GetBlob();
 		}
 
 		public void Push(string value)
 		{
-			_controller.SaveFile(value);
+			_controller.SaveBlob(value);
 		}
 	}
 }

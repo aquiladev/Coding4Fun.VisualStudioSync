@@ -1,5 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Collections.Generic;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace VisualStudioSync
 {
@@ -14,14 +18,19 @@ namespace VisualStudioSync
 			_controllers = controllers;
 		}
 
-		public void Sync()
+		public void Sync(DateTime? updated)
 		{
 			var repoValue = _repository.Pull();
-			var controllersValue = GetControllersValue();
-			if (string.IsNullOrEmpty(repoValue) 
-				|| !controllersValue.Equals(repoValue))
+			if (string.IsNullOrEmpty(repoValue.Value)
+				//|| !controllersValue.Equals(repoValue.Value)
+				|| (updated.HasValue && updated.Value > repoValue.Updated))
 			{
+				var controllersValue = GetControllersValue();
 				_repository.Push(controllersValue);
+			}
+			else
+			{
+				SetSettings(repoValue.Value);
 			}
 		}
 
@@ -29,7 +38,50 @@ namespace VisualStudioSync
 
 		private string GetControllersValue()
 		{
-			return _controllers.Aggregate("", (current, controller) => current + controller.Get());
+			var doc = new XmlDocument();
+			var root = doc.CreateElement("vssync");
+			doc.AppendChild(root);
+			foreach (var controller in _controllers)
+			{
+				var child = doc.CreateElement("ctrl");
+				child.SetAttribute("name", controller.Name);
+
+				var value = controller.Get();
+				var controllerDoc = new XmlDocument();
+				controllerDoc.LoadXml(value);
+				if (controllerDoc.DocumentElement != null)
+				{
+					var nodeToCopy = doc.ImportNode(controllerDoc.DocumentElement, true);
+					child.AppendChild(nodeToCopy);
+				}
+				root.AppendChild(child);
+			}
+
+			return doc.OuterXml;
+		}
+
+		private void SetSettings(string value)
+		{
+			using (var stream = new StringReader(value))
+			{
+				var xDoc = XDocument.Load(stream);
+				var ctrls = from c in xDoc.Descendants("ctrl")
+							select new
+							{
+								Name = c.Attribute("name").ToString(),
+								Value = c.FirstNode.ToString()
+							};
+
+				foreach (var ctrl in ctrls)
+				{
+					var controller = _controllers.FirstOrDefault(c => c.Name == ctrl.Name);
+					if (controller == null)
+					{
+						continue;
+					}
+					controller.Set(ctrl.Value);
+				}
+			}
 		}
 
 		#endregion

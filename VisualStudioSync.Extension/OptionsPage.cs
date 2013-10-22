@@ -20,6 +20,8 @@ namespace VisualStudioSync.Extension
 		[Category("Sync"), DisplayName(@"Logging Enabled"), Description("Enable or disable logging")]
 		public bool LoggingEnabled { get; set; }
 
+		public DateTime? Updated { get; set; }
+
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		protected override IWin32Window Window

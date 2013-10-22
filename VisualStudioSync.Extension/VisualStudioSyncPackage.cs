@@ -8,6 +8,8 @@ using System.ComponentModel.Design;
 using Autofac;
 using Autofac.Core;
 using Autofac.Core.Activators.Reflection;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -30,18 +32,35 @@ namespace VisualStudioSync.Extension
 		private static IContainer Container { get; set; }
 
 		private uint _cookie;
-		private OptionsPage _optionsPage;
+		private OptionsPage _options;
 		private ISyncManager _manager;
+		private DTE2 _applicationObject;
+		private DTEEvents _packageDTEEvents;
 
 		private string Settings
 		{
 			get
 			{
-				if (String.IsNullOrEmpty(_optionsPage.Settings))
+				if (String.IsNullOrEmpty(_options.Settings))
 				{
 					//LogMessage(string.Format("Invalid Directory configured for persisting settings. Defaulting to {0}", UserLocalDataPath));
 				}
-				return _optionsPage.Settings;
+				return _options.Settings;
+			}
+		}
+
+		public DTE2 ApplicationObject
+		{
+			get
+			{
+				if (_applicationObject != null)
+				{
+					return _applicationObject;
+				}
+				// Get an instance of the currently running Visual Studio IDE
+				var dte = (DTE)GetService(typeof(DTE));
+				_applicationObject = dte as DTE2;
+				return _applicationObject;
 			}
 		}
 
@@ -56,6 +75,9 @@ namespace VisualStudioSync.Extension
 			{
 				ErrorHandler.ThrowOnFailure(shellService.AdviseShellPropertyChanges(this, out _cookie));
 			}
+
+			_packageDTEEvents = ApplicationObject.Events.DTEEvents;
+			_packageDTEEvents.OnBeginShutdown += _packageDTEEvents_OnBeginShutdown;
 
 			_manager = Container.Resolve<ISyncManager>();
 		}
@@ -73,40 +95,30 @@ namespace VisualStudioSync.Extension
 						ErrorHandler.ThrowOnFailure(shellService.UnadviseShellPropertyChanges(_cookie));
 					_cookie = 0;
 
-					_optionsPage = (OptionsPage)GetDialogPage(typeof(OptionsPage));
-					_optionsPage.SettingsUpdated += OptionsPageSettingsUpdated;
+					_options = (OptionsPage)GetDialogPage(typeof(OptionsPage));
+					//_options.SettingsUpdated += OptionsPageSettingsUpdated;
 
-					SetupWatcher();
 					Synchronize();
+					_options.Updated = DateTime.Now;
 				}
 			}
 			return VSConstants.S_OK;
 		}
 
-		void OptionsPageSettingsUpdated(string settings)
+		void _packageDTEEvents_OnBeginShutdown()
 		{
-			SetupWatcher();
+			_options.Updated = DateTime.Now;
 			Synchronize();
 		}
 
-		void SetupWatcher()
+		void OptionsPageSettingsUpdated(string settings)
 		{
-			//if (_watcher != null)
-			//{
-			//	return;
-			//}
-			//_watcher = Container.Resolve<ISettingsWatcher>();
-			//_watcher.Changed += OnWatcherOnChanged;
+			Synchronize();
 		}
-
-		//private void OnWatcherOnChanged(object sender, EventArgs e)
-		//{
-		//	Synchronize();
-		//}
 
 		void Synchronize()
 		{
-			_manager.Sync();
+			_manager.Sync(_options.Updated);
 		}
 
 		private static string GetPackageInstallationFolder()
@@ -114,7 +126,9 @@ namespace VisualStudioSync.Extension
 			var packageType = typeof(VisualStudioSyncPackage);
 			var assemblyCodeBaseUri = new Uri(packageType.Assembly.CodeBase, UriKind.Absolute);
 			var assemblyFileInfo = new FileInfo(assemblyCodeBaseUri.LocalPath);
-			return assemblyFileInfo.Directory.FullName;
+			return assemblyFileInfo.Directory != null
+				? assemblyFileInfo.Directory.FullName
+				: string.Empty;
 		}
 
 		#region Init Container
