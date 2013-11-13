@@ -1,4 +1,6 @@
-﻿namespace VisualStudioSync.Live
+﻿using System;
+
+namespace VisualStudioSync.Live
 {
 	partial class LiveAuthForm
 	{
@@ -26,6 +28,7 @@
 		/// Required method for Designer support - do not modify
 		/// the contents of this method with the code editor.
 		/// </summary>
+		[STAThread]
 		private void InitializeComponent()
 		{
 			this.webBrowser = new System.Windows.Forms.WebBrowser();
@@ -51,7 +54,6 @@
 			this.Text = "Live Auth";
 			this.Load += new System.EventHandler(this.LiveAuthForm_Load);
 			this.ResumeLayout(false);
-
 		}
 
 		#endregion

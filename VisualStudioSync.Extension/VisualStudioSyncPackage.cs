@@ -36,18 +36,7 @@ namespace VisualStudioSync.Extension
 		private ISyncManager _manager;
 		private DTE2 _applicationObject;
 		private DTEEvents _packageDTEEvents;
-
-		private string Settings
-		{
-			get
-			{
-				if (String.IsNullOrEmpty(_options.Settings))
-				{
-					//LogMessage(string.Format("Invalid Directory configured for persisting settings. Defaulting to {0}", UserLocalDataPath));
-				}
-				return _options.Settings;
-			}
-		}
+		private IFileWatcher _fileWatcher;
 
 		public DTE2 ApplicationObject
 		{
@@ -70,6 +59,7 @@ namespace VisualStudioSync.Extension
 		{
 			base.Initialize();
 			InitializeContainer();
+			InitializeWatcher();
 			var shellService = GetService(typeof(SVsShell)) as IVsShell;
 			if (shellService != null)
 			{
@@ -96,10 +86,10 @@ namespace VisualStudioSync.Extension
 					_cookie = 0;
 
 					_options = (OptionsPage)GetDialogPage(typeof(OptionsPage));
-					//_options.SettingsUpdated += OptionsPageSettingsUpdated;
+					_options.SettingsUpdated += OptionsPageSettingsUpdated;
 
+					_fileWatcher.Start();
 					Synchronize();
-					_options.Updated = DateTime.Now;
 				}
 			}
 			return VSConstants.S_OK;
@@ -107,18 +97,28 @@ namespace VisualStudioSync.Extension
 
 		void _packageDTEEvents_OnBeginShutdown()
 		{
-			_options.Updated = DateTime.Now;
 			Synchronize();
+			_fileWatcher.Stop();
 		}
 
 		void OptionsPageSettingsUpdated(string settings)
+		{
+			_fileWatcher.Stop();
+			_manager.Push();
+			_fileWatcher.Start();
+		}
+
+		private void OnFileWatcherOnChanged(object s, EventArgs e)
 		{
 			Synchronize();
 		}
 
 		void Synchronize()
 		{
-			_manager.Sync(_options.Updated);
+			lock (this)
+			{
+				_manager.Sync();
+			}
 		}
 
 		private static string GetPackageInstallationFolder()
@@ -129,6 +129,13 @@ namespace VisualStudioSync.Extension
 			return assemblyFileInfo.Directory != null
 				? assemblyFileInfo.Directory.FullName
 				: string.Empty;
+		}
+
+		private void InitializeWatcher()
+		{
+			_fileWatcher = Container.Resolve<IFileWatcher>();
+			_fileWatcher.Interval = 10;
+			_fileWatcher.Changed += OnFileWatcherOnChanged;
 		}
 
 		#region Init Container
@@ -147,7 +154,10 @@ namespace VisualStudioSync.Extension
 				.WithParameter(new NamedParameter("manager", GetGlobalService(typeof(SVsProfileDataManager)) as IVsProfileDataManager))
 				.PreserveExistingDefaults();
 			builder.RegisterType<XmlRepository>()
-				.As<IXmlRepository>(); 
+				.As<IXmlRepository>();
+			builder.RegisterType<LiveWatcher>()
+				.As<IFileWatcher>()
+				.WithParameter(new NamedParameter("controller", new LiveController()));
 			Container = builder.Build();
 		}
 

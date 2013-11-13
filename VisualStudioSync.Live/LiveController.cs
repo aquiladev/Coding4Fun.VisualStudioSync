@@ -90,20 +90,26 @@ namespace VisualStudioSync.Live
 
 		public Blob GetBlob()
 		{
-			if (AuthSession == null)
+			lock (this)
 			{
-				SignIn();
+				if (AuthSession == null)
+				{
+					SignIn();
+				}
+				return ReadFile();
 			}
-			return ReadFile();
 		}
 
 		public void SaveBlob(string value)
 		{
-			if (AuthSession == null)
+			lock (this)
 			{
-				SignIn();
+				if (AuthSession == null)
+				{
+					SignIn();
+				}
+				WriteFile(value);
 			}
-			var g = WriteFile(value).Result;
 		}
 
 		private void SignIn()
@@ -117,6 +123,7 @@ namespace VisualStudioSync.Live
 					endUrl,
 					OnAuthCompleted);
 				_authForm.FormClosed += AuthForm_FormClosed;
+
 				_authForm.ShowDialog();
 			}
 		}

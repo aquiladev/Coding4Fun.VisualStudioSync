@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Xml;
@@ -18,20 +17,24 @@ namespace VisualStudioSync
 			_controllers = controllers;
 		}
 
-		public void Sync(DateTime? updated)
+		public void Sync()
 		{
 			var repoValue = _repository.Pull();
-			if (string.IsNullOrEmpty(repoValue.Value)
-				//|| !controllersValue.Equals(repoValue.Value)
-				|| (updated.HasValue && updated.Value > repoValue.Updated))
+			if (repoValue == null 
+				|| string.IsNullOrEmpty(repoValue.Value))
 			{
-				var controllersValue = GetControllersValue();
-				_repository.Push(controllersValue);
+				Push();
 			}
 			else
 			{
-				SetSettings(repoValue.Value);
+				Pull(repoValue.Value);
 			}
+		}
+
+		public void Push()
+		{
+			var controllersValue = GetControllersValue();
+			_repository.Push(controllersValue);
 		}
 
 		#region Private methods
@@ -60,7 +63,7 @@ namespace VisualStudioSync
 			return doc.OuterXml;
 		}
 
-		private void SetSettings(string value)
+		private void Pull(string value)
 		{
 			using (var stream = new StringReader(value))
 			{

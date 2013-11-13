@@ -20,8 +20,6 @@ namespace VisualStudioSync.Extension
 		[Category("Sync"), DisplayName(@"Logging Enabled"), Description("Enable or disable logging")]
 		public bool LoggingEnabled { get; set; }
 
-		public DateTime? Updated { get; set; }
-
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		protected override IWin32Window Window
@@ -37,11 +35,6 @@ namespace VisualStudioSync.Extension
 		protected override void OnApply(PageApplyEventArgs e)
 		{
 			base.OnApply(e);
-			OnSettingsDirectoryPathUpdated();
-		}
-
-		void OnSettingsDirectoryPathUpdated()
-		{
 			if (SettingsUpdated != null)
 			{
 				SettingsUpdated.Invoke(String.Empty);

@@ -83,6 +83,7 @@
     </Compile>
     <Compile Include="LiveController.cs" />
     <Compile Include="LiveRepository.cs" />
+    <Compile Include="LiveWatcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

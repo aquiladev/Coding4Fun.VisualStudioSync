@@ -1,9 +1,8 @@
-﻿using System;
-
-namespace VisualStudioSync
+﻿namespace VisualStudioSync
 {
 	public interface ISyncManager
 	{
-		void Sync(DateTime? updated);
+		void Sync();
+		void Push();
 	}
 }
