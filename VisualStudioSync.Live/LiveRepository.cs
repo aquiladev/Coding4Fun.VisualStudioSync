@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Threading.Tasks;
 using VisualStudioSync.Models;
 
 namespace VisualStudioSync.Live
@@ -7,15 +7,14 @@ namespace VisualStudioSync.Live
 	{
 		private readonly LiveController _controller;
 		
-		public LiveRepository()
+		public LiveRepository(LiveController controller)
 		{
-			_controller = new LiveController();
+			_controller = controller;
 		}
 
-		[STAThread]
-		public Blob Pull()
+		public async Task<Blob> Pull()
 		{
-			return _controller.GetBlob();
+			return await _controller.GetBlob();
 		}
 
 		public void Push(string value)

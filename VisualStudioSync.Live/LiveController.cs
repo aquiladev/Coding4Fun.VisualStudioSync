@@ -20,6 +20,7 @@ namespace VisualStudioSync.Live
 		private LiveAuthClient _liveAuthClient;
 		private LiveConnectClient _liveConnectClient;
 		private RefreshTokenInfo _refreshTokenInfo;
+		private readonly AsyncLock _lock = new AsyncLock(); 
 
 		private LiveAuthClient AuthClient
 		{
@@ -88,35 +89,36 @@ namespace VisualStudioSync.Live
 			return Task.Factory.StartNew(() => _refreshTokenInfo);
 		}
 
-		public Blob GetBlob()
+		public async Task<Blob> GetBlob()
 		{
-			lock (this)
+			using (await _lock.LockAsync())
 			{
 				if (AuthSession == null)
 				{
 					SignIn();
 				}
-				return ReadFile();
+				return await ReadFile();
 			}
 		}
 
-		public void SaveBlob(string value)
+		public async void SaveBlob(string value)
 		{
-			lock (this)
+			using (await _lock.LockAsync())
 			{
 				if (AuthSession == null)
 				{
 					SignIn();
 				}
-				WriteFile(value);
+				await WriteFile(value);
 			}
 		}
 
-		private void SignIn()
+		private async void SignIn()
 		{
 			if (_authForm == null)
 			{
-				var startUrl = AuthClient.GetLoginUrl(new List<string> { "wl.signin", "wl.skydrive", "wl.skydrive_update", "wl.offline_access" });
+				var startUrl =
+					AuthClient.GetLoginUrl(new List<string> {"wl.signin", "wl.skydrive", "wl.skydrive_update", "wl.offline_access"});
 				const string endUrl = "https://login.live.com/oauth20_desktop.srf";
 				_authForm = new LiveAuthForm(
 					startUrl,
@@ -153,16 +155,16 @@ namespace VisualStudioSync.Live
 			}
 		}
 
-		private Blob ReadFile()
+		private async Task<Blob> ReadFile()
 		{
-			var folderId = GetSyncFolder();
+			var folderId = await GetSyncFolder();
 			if (string.IsNullOrEmpty(folderId))
 			{
-				throw new NullReferenceException();
+				return null;
 			}
 
 			var path = string.Format(FilesPath, folderId);
-			var result = _liveConnectClient.GetAsync(path).Result;
+			var result = await _liveConnectClient.GetAsync(path);
 			var files = result.Result["data"] as List<object>;
 			var file = files == null
 				? null
@@ -176,7 +178,7 @@ namespace VisualStudioSync.Live
 			}
 
 			var id = file["upload_location"].ToString();
-			var fileAsync = _liveConnectClient.DownloadAsync(id).Result;
+			var fileAsync = await _liveConnectClient.DownloadAsync(id);
 			string value;
 			using (var reader = new StreamReader(fileAsync.Stream))
 			{
@@ -186,23 +188,23 @@ namespace VisualStudioSync.Live
 			return new Blob(value, DateTime.Parse(file["updated_time"].ToString()));
 		}
 
-		private Task<LiveOperationResult> WriteFile(string value)
+		private async Task<LiveOperationResult> WriteFile(string value)
 		{
-			var folderId = GetSyncFolder();
+			var folderId = await GetSyncFolder();
 			if (string.IsNullOrEmpty(folderId))
 			{
-				throw new NullReferenceException();
+				return null;
 			}
 
-			return _liveConnectClient.UploadAsync(folderId, FileName,
+			return await _liveConnectClient.UploadAsync(folderId, FileName,
 				new MemoryStream(System.Text.Encoding.UTF8.GetBytes(value)),
 				OverwriteOption.Overwrite);
 		}
 
-		private string GetSyncFolder()
+		private async Task<string> GetSyncFolder()
 		{
 			string folderId = null;
-			var result = _liveConnectClient.GetAsync(string.Format(FilesPath, SkyDrivePath)).Result;
+			var result = await _liveConnectClient.GetAsync(string.Format(FilesPath, SkyDrivePath));
 			if (result != null)
 			{
 				var items = result.Result["data"] as List<object>;
@@ -216,7 +218,7 @@ namespace VisualStudioSync.Live
 				if (String.IsNullOrEmpty(folderId))
 				{
 					var folderData = new Dictionary<string, object> { { "name", FolderName } };
-					result = _liveConnectClient.PostAsync(SkyDrivePath, folderData).Result;
+					result = await _liveConnectClient.PostAsync(SkyDrivePath, folderData);
 					dynamic res = result.Result;
 					folderId = res.id;
 				}

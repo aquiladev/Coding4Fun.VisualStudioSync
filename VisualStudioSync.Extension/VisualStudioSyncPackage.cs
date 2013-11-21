@@ -156,8 +156,8 @@ namespace VisualStudioSync.Extension
 			builder.RegisterType<XmlRepository>()
 				.As<IXmlRepository>();
 			builder.RegisterType<LiveWatcher>()
-				.As<IFileWatcher>()
-				.WithParameter(new NamedParameter("controller", new LiveController()));
+				.As<IFileWatcher>();
+			builder.RegisterType<LiveController>().SingleInstance();
 			Container = builder.Build();
 		}
 

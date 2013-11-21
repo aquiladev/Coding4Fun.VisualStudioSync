@@ -17,9 +17,9 @@ namespace VisualStudioSync
 			_controllers = controllers;
 		}
 
-		public void Sync()
+		public async void Sync()
 		{
-			var repoValue = _repository.Pull();
+			var repoValue = await _repository.Pull();
 			if (repoValue == null 
 				|| string.IsNullOrEmpty(repoValue.Value))
 			{

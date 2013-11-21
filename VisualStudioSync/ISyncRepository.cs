@@ -1,10 +1,11 @@
-﻿using VisualStudioSync.Models;
+﻿using System.Threading.Tasks;
+using VisualStudioSync.Models;
 
 namespace VisualStudioSync
 {
 	public interface ISyncRepository
 	{
-		Blob Pull();
+		Task<Blob> Pull();
 		void Push(string value);
 	}
 }
