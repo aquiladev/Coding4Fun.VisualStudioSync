@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync.Extension", "VisualStudioSync.Extension\VisualStudioSync.Extension.csproj", "{494A4108-834A-4BB1-BEF4-13AAA135FF95}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSync", "VisualStudioSync\VisualStudioSync.csproj", "{75FD3E62-ED44-4E90-9A28-15B9432A4B8C}"
