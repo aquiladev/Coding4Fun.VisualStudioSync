@@ -103,9 +103,18 @@ namespace VisualStudioSync.Extension
 
 		void OptionsPageSettingsUpdated(string settings)
 		{
-			_fileWatcher.Stop();
-			_manager.Push();
-			_fileWatcher.Start();
+			try
+			{
+				_fileWatcher.Stop();
+				Debug.WriteLine("================Begin Push====================");
+				_manager.Push();
+				Debug.WriteLine("================End Push====================");
+				_fileWatcher.Start();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
 		}
 
 		private void OnFileWatcherOnChanged(object s, EventArgs e)
@@ -115,9 +124,16 @@ namespace VisualStudioSync.Extension
 
 		void Synchronize()
 		{
-			lock (this)
+			//lock (this)
+			try
 			{
+				Debug.WriteLine("================Begin Sync====================");
 				_manager.Sync();
+				Debug.WriteLine("================End Sync====================");
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
 			}
 		}
 
@@ -134,7 +150,7 @@ namespace VisualStudioSync.Extension
 		private void InitializeWatcher()
 		{
 			_fileWatcher = Container.Resolve<IFileWatcher>();
-			_fileWatcher.Interval = 10;
+			_fileWatcher.Interval = 20;
 			_fileWatcher.Changed += OnFileWatcherOnChanged;
 		}
 
