@@ -71,7 +71,7 @@ namespace VisualStudioSync
 				var ctrls = from c in xDoc.Descendants("ctrl")
 							select new
 							{
-								Name = c.Attribute("name").ToString(),
+								Name = c.Attribute("name").Value.ToString(),
 								Value = c.FirstNode.ToString()
 							};
 

@@ -13,7 +13,7 @@ namespace VisualStudioSync.Live
 	{
 		private const string ClientId = "00000000481024B2";
 		private const string FolderName = "VS Sync";
-		private const string FileName = "vs_sync.settings";
+		private const string FileName = "vs.sync";
 		private const string SkyDrivePath = "me/skydrive";
 		private const string FilesPath = "{0}/files";
 		private LiveAuthForm _authForm;
@@ -207,7 +207,7 @@ namespace VisualStudioSync.Live
 			var result = await _liveConnectClient.GetAsync(string.Format(FilesPath, SkyDrivePath));
 			if (result != null)
 			{
-				var items = result.Result["data"] as List<object>;
+                var items = result.Result["data"] as List<object>;
 				folderId = items == null
 					? null
 					: items.Select(item => item as IDictionary<string, object>)

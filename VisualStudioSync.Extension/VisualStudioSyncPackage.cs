@@ -26,7 +26,7 @@ namespace VisualStudioSync.Extension
 	[PackageRegistration(UseManagedResourcesOnly = true)]
 	[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
 	[Guid(GuidList.guidVisualStudioSyncPkgString)]
-	[ProvideOptionPage(typeof(OptionsPage), "Extension Sync", "General", 0, 0, true)]
+	[ProvideOptionPage(typeof(OptionsPage), "Sync", "General", 0, 0, true)]
 	public sealed class VisualStudioSyncPackage : Package, IVsShellPropertyEvents
 	{
 		private static IContainer Container { get; set; }
@@ -85,6 +85,19 @@ namespace VisualStudioSync.Extension
 						ErrorHandler.ThrowOnFailure(shellService.UnadviseShellPropertyChanges(_cookie));
 					_cookie = 0;
 
+                    var VSStd97CmdID = "{5EFC7975-14BC-11CF-9B2B-00AA00573819}";
+                    var ClassView = 264;
+                    var app = (DTE)GetService(typeof(SDTE));
+                    app.Commands.Raise(VSStd97CmdID, ClassView, null, null);
+
+                    //app.Events.SolutionItemsEvents. += window =>
+                    //{
+                    //    Debug.WriteLine("====================================", window);
+                    //};
+
+                    //var app = (DTE)GetService(typeof(SDTE));
+                    //app.Events.CommandEvents.AfterExecute
+
 					_options = (OptionsPage)GetDialogPage(typeof(OptionsPage));
 					_options.SettingsUpdated += OptionsPageSettingsUpdated;
 
@@ -124,7 +137,6 @@ namespace VisualStudioSync.Extension
 
 		void Synchronize()
 		{
-			//lock (this)
 			try
 			{
 				Debug.WriteLine("================Begin Sync====================");
@@ -158,7 +170,8 @@ namespace VisualStudioSync.Extension
 
 		private static void InitializeContainer()
 		{
-			var path = GetPackageInstallationFolder();
+            var path = System.IO.Path.GetTempPath();
+            Debug.WriteLine("================{0}====================", path);
 			var builder = new ContainerBuilder();
 			builder.RegisterType<SyncManager>()
 				.As<ISyncManager>();

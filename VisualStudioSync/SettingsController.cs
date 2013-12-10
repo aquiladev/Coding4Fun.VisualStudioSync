@@ -6,7 +6,7 @@ namespace VisualStudioSync
 {
 	public class SettingsController : ISyncController
 	{
-		public const string FileName = "vs_sync_temp.vssettings";
+        public const string FileName = "vs_temp.sync";
 
 		private readonly string _fullPath;
 		private readonly IVsProfileDataManager _manager;
