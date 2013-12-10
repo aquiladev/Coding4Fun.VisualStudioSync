@@ -6,14 +6,14 @@ namespace VisualStudioSync
 {
 	public class SettingsController : ISyncController
 	{
-        public const string FileName = "vs_temp.sync";
+		public const string FileName = "vs_temp.sync";
 
 		private readonly string _fullPath;
 		private readonly IVsProfileDataManager _manager;
 		private readonly IXmlRepository _xmlRepository;
 		private IVsSettingsErrorInformation _errorInformation;
 
-		public SettingsController(string extPath, 
+		public SettingsController(string extPath,
 			IVsProfileDataManager manager,
 			IXmlRepository xmlRepository)
 		{

@@ -40,20 +40,21 @@ namespace VisualStudioSync.Live
 			this.webBrowser.Location = new System.Drawing.Point(0, 0);
 			this.webBrowser.MinimumSize = new System.Drawing.Size(20, 20);
 			this.webBrowser.Name = "webBrowser";
-			this.webBrowser.Size = new System.Drawing.Size(782, 573);
+			this.webBrowser.Size = new System.Drawing.Size(802, 593);
 			this.webBrowser.TabIndex = 0;
 			// 
 			// LiveAuthForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(782, 573);
+			this.ClientSize = new System.Drawing.Size(802, 593);
 			this.Controls.Add(this.webBrowser);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.Name = "LiveAuthForm";
 			this.Text = "Live Auth";
 			this.Load += new System.EventHandler(this.LiveAuthForm_Load);
 			this.ResumeLayout(false);
+
 		}
 
 		#endregion

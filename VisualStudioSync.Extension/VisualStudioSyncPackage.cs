@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.ComponentModel.Design;
 using Autofac;
-using Autofac.Core;
-using Autofac.Core.Activators.Reflection;
 using EnvDTE;
 using EnvDTE80;
-using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell.Settings;
-using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using VisualStudioSync.Live;
 
@@ -46,7 +36,7 @@ namespace VisualStudioSync.Extension
 				{
 					return _applicationObject;
 				}
-				// Get an instance of the currently running Visual Studio IDE
+
 				var dte = (DTE)GetService(typeof(DTE));
 				_applicationObject = dte as DTE2;
 				return _applicationObject;
@@ -85,19 +75,6 @@ namespace VisualStudioSync.Extension
 						ErrorHandler.ThrowOnFailure(shellService.UnadviseShellPropertyChanges(_cookie));
 					_cookie = 0;
 
-                    var VSStd97CmdID = "{5EFC7975-14BC-11CF-9B2B-00AA00573819}";
-                    var ClassView = 264;
-                    var app = (DTE)GetService(typeof(SDTE));
-                    app.Commands.Raise(VSStd97CmdID, ClassView, null, null);
-
-                    //app.Events.SolutionItemsEvents. += window =>
-                    //{
-                    //    Debug.WriteLine("====================================", window);
-                    //};
-
-                    //var app = (DTE)GetService(typeof(SDTE));
-                    //app.Events.CommandEvents.AfterExecute
-
 					_options = (OptionsPage)GetDialogPage(typeof(OptionsPage));
 					_options.SettingsUpdated += OptionsPageSettingsUpdated;
 
@@ -119,9 +96,7 @@ namespace VisualStudioSync.Extension
 			try
 			{
 				_fileWatcher.Stop();
-				Debug.WriteLine("================Begin Push====================");
 				_manager.Push();
-				Debug.WriteLine("================End Push====================");
 				_fileWatcher.Start();
 			}
 			catch (Exception ex)
@@ -139,24 +114,12 @@ namespace VisualStudioSync.Extension
 		{
 			try
 			{
-				Debug.WriteLine("================Begin Sync====================");
 				_manager.Sync();
-				Debug.WriteLine("================End Sync====================");
 			}
 			catch (Exception ex)
 			{
 				Debug.WriteLine(ex);
 			}
-		}
-
-		private static string GetPackageInstallationFolder()
-		{
-			var packageType = typeof(VisualStudioSyncPackage);
-			var assemblyCodeBaseUri = new Uri(packageType.Assembly.CodeBase, UriKind.Absolute);
-			var assemblyFileInfo = new FileInfo(assemblyCodeBaseUri.LocalPath);
-			return assemblyFileInfo.Directory != null
-				? assemblyFileInfo.Directory.FullName
-				: string.Empty;
 		}
 
 		private void InitializeWatcher()
@@ -170,8 +133,6 @@ namespace VisualStudioSync.Extension
 
 		private static void InitializeContainer()
 		{
-            var path = System.IO.Path.GetTempPath();
-            Debug.WriteLine("================{0}====================", path);
 			var builder = new ContainerBuilder();
 			builder.RegisterType<SyncManager>()
 				.As<ISyncManager>();
@@ -179,7 +140,7 @@ namespace VisualStudioSync.Extension
 				.As<ISyncRepository>();
 			builder.RegisterType<SettingsController>()
 				.As<ISyncController>()
-				.WithParameter(new NamedParameter("extPath", path))
+				.WithParameter(new NamedParameter("extPath", Path.GetTempPath()))
 				.WithParameter(new NamedParameter("manager", GetGlobalService(typeof(SVsProfileDataManager)) as IVsProfileDataManager))
 				.PreserveExistingDefaults();
 			builder.RegisterType<XmlRepository>()

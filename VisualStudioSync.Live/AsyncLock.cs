@@ -42,7 +42,7 @@ namespace VisualStudioSync.Live
 
 	public class AsyncSemaphore
 	{
-		private readonly static Task _completed = Task.FromResult(true);
+		private readonly static Task Completed = Task.FromResult(true);
 		private readonly Queue<TaskCompletionSource<bool>> _waiters = new Queue<TaskCompletionSource<bool>>();
 		private int _currentCount;
 
@@ -59,14 +59,12 @@ namespace VisualStudioSync.Live
 				if (_currentCount > 0)
 				{
 					--_currentCount;
-					return _completed;
+					return Completed;
 				}
-				else
-				{
-					var waiter = new TaskCompletionSource<bool>();
-					_waiters.Enqueue(waiter);
-					return waiter.Task;
-				}
+
+				var waiter = new TaskCompletionSource<bool>();
+				_waiters.Enqueue(waiter);
+				return waiter.Task;
 			}
 		}
 

@@ -6,7 +6,7 @@ namespace VisualStudioSync.Live
 	public class LiveRepository : ISyncRepository
 	{
 		private readonly LiveController _controller;
-		
+
 		public LiveRepository(LiveController controller)
 		{
 			_controller = controller;

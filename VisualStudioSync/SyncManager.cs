@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Xml;
@@ -20,7 +21,7 @@ namespace VisualStudioSync
 		public async void Sync()
 		{
 			var repoValue = await _repository.Pull();
-			if (repoValue == null 
+			if (repoValue == null
 				|| string.IsNullOrEmpty(repoValue.Value))
 			{
 				Push();
@@ -71,7 +72,7 @@ namespace VisualStudioSync
 				var ctrls = from c in xDoc.Descendants("ctrl")
 							select new
 							{
-								Name = c.Attribute("name").Value.ToString(),
+								Name = c.Attribute("name").Value.ToString(CultureInfo.InvariantCulture),
 								Value = c.FirstNode.ToString()
 							};
 
