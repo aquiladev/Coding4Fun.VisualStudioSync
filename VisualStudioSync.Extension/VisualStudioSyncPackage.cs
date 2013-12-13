@@ -6,6 +6,7 @@ using Autofac;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using VisualStudioSync.Live;
@@ -142,6 +143,10 @@ namespace VisualStudioSync.Extension
 				.As<ISyncController>()
 				.WithParameter(new NamedParameter("extPath", Path.GetTempPath()))
 				.WithParameter(new NamedParameter("manager", GetGlobalService(typeof(SVsProfileDataManager)) as IVsProfileDataManager))
+				.PreserveExistingDefaults();
+			builder.RegisterType<ExtensionsController>()
+				.As<ISyncController>()
+				.WithParameter(new NamedParameter("manager", GetGlobalService(typeof(SVsExtensionManager)) as IVsExtensionManager))
 				.PreserveExistingDefaults();
 			builder.RegisterType<XmlRepository>()
 				.As<IXmlRepository>();
