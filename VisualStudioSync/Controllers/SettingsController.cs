@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace VisualStudioSync
+namespace VisualStudioSync.Controllers
 {
 	public class SettingsController : ISyncController
 	{

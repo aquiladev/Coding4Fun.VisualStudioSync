@@ -9,6 +9,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
+using VisualStudioSync.Controllers;
 using VisualStudioSync.Live;
 
 namespace VisualStudioSync.Extension
@@ -147,6 +148,9 @@ namespace VisualStudioSync.Extension
 			builder.RegisterType<ExtensionsController>()
 				.As<ISyncController>()
 				.WithParameter(new NamedParameter("manager", GetGlobalService(typeof(SVsExtensionManager)) as IVsExtensionManager))
+				.PreserveExistingDefaults();
+			builder.RegisterType<ThemesController>()
+				.As<ISyncController>()
 				.PreserveExistingDefaults();
 			builder.RegisterType<XmlRepository>()
 				.As<IXmlRepository>();

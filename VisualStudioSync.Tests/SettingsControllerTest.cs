@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell.Interop;
 using NUnit.Framework;
 using Telerik.JustMock;
+using VisualStudioSync.Controllers;
 
 namespace VisualStudioSync.Tests
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.VisualStudio.ExtensionManager;
 
-namespace VisualStudioSync
+namespace VisualStudioSync.Controllers
 {
 	public class ExtensionsController : ISyncController
 	{
