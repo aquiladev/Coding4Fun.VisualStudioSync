@@ -9,6 +9,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
+using SkyDrive;
 using VisualStudioSync.Controllers;
 using VisualStudioSync.Live;
 
@@ -127,7 +128,6 @@ namespace VisualStudioSync.Extension
 		private void InitializeWatcher()
 		{
 			_fileWatcher = Container.Resolve<IFileWatcher>();
-			_fileWatcher.Interval = 20;
 			_fileWatcher.Changed += OnFileWatcherOnChanged;
 		}
 
@@ -149,14 +149,19 @@ namespace VisualStudioSync.Extension
 				.As<ISyncController>()
 				.WithParameter(new NamedParameter("manager", GetGlobalService(typeof(SVsExtensionManager)) as IVsExtensionManager))
 				.PreserveExistingDefaults();
-			builder.RegisterType<ThemesController>()
-				.As<ISyncController>()
-				.PreserveExistingDefaults();
+			//builder.RegisterType<ThemesController>()
+			//	.As<ISyncController>()
+			//	.PreserveExistingDefaults();
 			builder.RegisterType<XmlRepository>()
 				.As<IXmlRepository>();
-			builder.RegisterType<LiveWatcher>()
-				.As<IFileWatcher>();
-			builder.RegisterType<LiveController>().SingleInstance();
+			builder.RegisterType<FileWatcher>()
+				.As<IFileWatcher>()
+				.WithParameter(new NamedParameter("interval", 20));
+			builder.RegisterType<LiveController>()
+				.As<ILiveController>()
+				.WithParameter(new NamedParameter("clientId", "00000000481024B2"))
+				.WithParameter(new NamedParameter("path", "VS Sync\\vs.sync"))
+				.SingleInstance();
 			Container = builder.Build();
 		}
 

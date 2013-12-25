@@ -22,13 +22,13 @@ namespace VisualStudioSync
 		{
 			var repoValue = await _repository.Pull();
 			if (repoValue == null
-				|| string.IsNullOrEmpty(repoValue.Value))
+				|| string.IsNullOrEmpty(repoValue))
 			{
 				Push();
 			}
 			else
 			{
-				Pull(repoValue.Value);
+				Pull(repoValue);
 			}
 		}
 
