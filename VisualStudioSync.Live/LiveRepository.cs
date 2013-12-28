@@ -12,14 +12,14 @@ namespace VisualStudioSync.Live
 			_controller = controller;
 		}
 
-		public async Task<string> Pull()
+		public async Task<string> Pull(string path)
 		{
-			return await _controller.GetBlob();
+			return await _controller.GetFile(path);
 		}
 
-		public void Push(string value)
+		public void Push(string path, string value)
 		{
-			_controller.SaveBlob(value);
+			_controller.SaveFile(path, value);
 		}
 	}
 }

@@ -30,6 +30,7 @@ namespace VisualStudioSync.Extension
 		private DTE2 _applicationObject;
 		private DTEEvents _packageDTEEvents;
 		private IFileWatcher _fileWatcher;
+		private const string FilePath = @"VS Sync\vs.sync";
 
 		public DTE2 ApplicationObject
 		{
@@ -137,6 +138,7 @@ namespace VisualStudioSync.Extension
 		{
 			var builder = new ContainerBuilder();
 			builder.RegisterType<SyncManager>()
+				.WithParameter(new NamedParameter("path", FilePath))
 				.As<ISyncManager>();
 			builder.RegisterType<LiveRepository>()
 				.As<ISyncRepository>();
@@ -156,11 +158,12 @@ namespace VisualStudioSync.Extension
 				.As<IXmlRepository>();
 			builder.RegisterType<FileWatcher>()
 				.As<IFileWatcher>()
+				.WithParameter(new NamedParameter("path", FilePath))
 				.WithParameter(new NamedParameter("interval", 20));
 			builder.RegisterType<LiveController>()
 				.As<ILiveController>()
 				.WithParameter(new NamedParameter("clientId", "00000000481024B2"))
-				.WithParameter(new NamedParameter("path", "VS Sync\\vs.sync"))
+				.WithParameter(new NamedParameter("ensureFolder", true))
 				.SingleInstance();
 			Container = builder.Build();
 		}

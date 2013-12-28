@@ -89,7 +89,7 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0" />
     <Reference Include="SkyDrive.FileWatcher, Version=0.1.0.0, Culture=neutral, PublicKeyToken=0a4ff7ea93dba29d, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\SkyDrive.FileWatcher.0.1.3\lib\net45\SkyDrive.FileWatcher.dll</HintPath>
+      <HintPath>..\packages\SkyDrive.FileWatcher.0.1.5\lib\net45\SkyDrive.FileWatcher.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

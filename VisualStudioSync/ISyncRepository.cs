@@ -4,7 +4,7 @@ namespace VisualStudioSync
 {
 	public interface ISyncRepository
 	{
-		Task<string> Pull();
-		void Push(string value);
+		Task<string> Pull(string path);
+		void Push(string path, string value);
 	}
 }

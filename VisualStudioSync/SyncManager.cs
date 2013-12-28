@@ -11,16 +11,20 @@ namespace VisualStudioSync
 	{
 		private readonly ISyncRepository _repository;
 		private readonly IEnumerable<ISyncController> _controllers;
+		private readonly string _path;
 
-		public SyncManager(ISyncRepository repository, IEnumerable<ISyncController> controllers)
+		public SyncManager(ISyncRepository repository, 
+			IEnumerable<ISyncController> controllers,
+			string path)
 		{
 			_repository = repository;
 			_controllers = controllers;
+			_path = path;
 		}
 
 		public async void Sync()
 		{
-			var repoValue = await _repository.Pull();
+			var repoValue = await _repository.Pull(_path);
 			if (repoValue == null
 				|| string.IsNullOrEmpty(repoValue))
 			{
@@ -34,13 +38,13 @@ namespace VisualStudioSync
 
 		public void Push()
 		{
-			var controllersValue = GetControllersValue();
-			_repository.Push(controllersValue);
+			var value = GetValue();
+			_repository.Push(_path, value);
 		}
 
 		#region Private methods
 
-		private string GetControllersValue()
+		private string GetValue()
 		{
 			var doc = new XmlDocument();
 			var root = doc.CreateElement("vssync");
