@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using SkyDrive;
+using SkyDrive.Threading;
 using VisualStudioSync.Controllers;
 using VisualStudioSync.Live;
 
@@ -53,86 +54,10 @@ namespace VisualStudioSync.Extension
 		{
 			base.Initialize();
 			InitializeContainer();
+			InitializeManager();
 			InitializeWatcher();
-			var shellService = GetService(typeof(SVsShell)) as IVsShell;
-			if (shellService != null)
-			{
-				ErrorHandler.ThrowOnFailure(shellService.AdviseShellPropertyChanges(this, out _cookie));
-			}
-
-			_packageDTEEvents = ApplicationObject.Events.DTEEvents;
-			_packageDTEEvents.OnBeginShutdown += _packageDTEEvents_OnBeginShutdown;
-
-			_manager = Container.Resolve<ISyncManager>();
+			InitializePackage();
 		}
-
-		#endregion
-
-		public int OnShellPropertyChange(int propid, object var)
-		{
-			if ((int)__VSSPROPID.VSSPROPID_Zombie == propid)
-			{
-				if ((bool)var == false)
-				{
-					var shellService = GetService(typeof(SVsShell)) as IVsShell;
-					if (shellService != null)
-						ErrorHandler.ThrowOnFailure(shellService.UnadviseShellPropertyChanges(_cookie));
-					_cookie = 0;
-
-					_options = (OptionsPage)GetDialogPage(typeof(OptionsPage));
-					_options.SettingsUpdated += OptionsPageSettingsUpdated;
-
-					_fileWatcher.Start();
-					Synchronize();
-				}
-			}
-			return VSConstants.S_OK;
-		}
-
-		void _packageDTEEvents_OnBeginShutdown()
-		{
-			Synchronize();
-			_fileWatcher.Stop();
-		}
-
-		void OptionsPageSettingsUpdated(string settings)
-		{
-			try
-			{
-				_fileWatcher.Stop();
-				_manager.Push();
-				_fileWatcher.Start();
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex);
-			}
-		}
-
-		private void OnFileWatcherOnChanged(object s, EventArgs e)
-		{
-			Synchronize();
-		}
-
-		void Synchronize()
-		{
-			try
-			{
-				_manager.Sync();
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex);
-			}
-		}
-
-		private void InitializeWatcher()
-		{
-			_fileWatcher = Container.Resolve<IFileWatcher>();
-			_fileWatcher.Changed += OnFileWatcherOnChanged;
-		}
-
-		#region Init Container
 
 		private static void InitializeContainer()
 		{
@@ -158,14 +83,97 @@ namespace VisualStudioSync.Extension
 				.As<IXmlRepository>();
 			builder.RegisterType<FileWatcher>()
 				.As<IFileWatcher>()
-				.WithParameter(new NamedParameter("path", FilePath))
-				.WithParameter(new NamedParameter("interval", 20));
+				.WithParameter(new NamedParameter("path", FilePath));
 			builder.RegisterType<LiveController>()
 				.As<ILiveController>()
 				.WithParameter(new NamedParameter("clientId", "00000000481024B2"))
 				.WithParameter(new NamedParameter("ensureFolder", true))
 				.SingleInstance();
+			builder.RegisterType<ThreadingTimer>()
+				.As<ITimer>()
+				.WithParameter(new NamedParameter("interval", 20))
+				.SingleInstance();
 			Container = builder.Build();
+		}
+
+		private void InitializeManager()
+		{
+			_manager = Container.Resolve<ISyncManager>();
+		}
+
+		private void InitializeWatcher()
+		{
+			_fileWatcher = Container.Resolve<IFileWatcher>();
+			_fileWatcher.Changed += (obj, e) => Synchronize();
+		}
+
+		private void InitializePackage()
+		{
+			var shellService = GetService(typeof(SVsShell)) as IVsShell;
+			if (shellService != null)
+			{
+				ErrorHandler.ThrowOnFailure(shellService.AdviseShellPropertyChanges(this, out _cookie));
+			}
+
+			_packageDTEEvents = ApplicationObject.Events.DTEEvents;
+			_packageDTEEvents.OnBeginShutdown += OnBeginShutdown;
+		}
+
+		void OnBeginShutdown()
+		{
+			Synchronize();
+			_fileWatcher.Stop();
+		}
+
+		void Synchronize()
+		{
+			try
+			{
+				_manager.Sync();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
+		}
+
+		#endregion
+
+		#region Implementation IVsShellPropertyEvents
+
+		public int OnShellPropertyChange(int propid, object var)
+		{
+			if ((int)__VSSPROPID.VSSPROPID_Zombie == propid)
+			{
+				if ((bool)var == false)
+				{
+					var shellService = GetService(typeof(SVsShell)) as IVsShell;
+					if (shellService != null)
+						ErrorHandler.ThrowOnFailure(shellService.UnadviseShellPropertyChanges(_cookie));
+					_cookie = 0;
+
+					_options = (OptionsPage)GetDialogPage(typeof(OptionsPage));
+					_options.SettingsUpdated += OptionsPageSettingsUpdated;
+
+					_fileWatcher.Start();
+					Synchronize();
+				}
+			}
+			return VSConstants.S_OK;
+		}
+
+		void OptionsPageSettingsUpdated(string settings)
+		{
+			try
+			{
+				_fileWatcher.Stop();
+				_manager.Push();
+				_fileWatcher.Start();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
 		}
 
 		#endregion
